@@ -1,6 +1,7 @@
 package com.xinghe.seckill.dto;
 
 import com.xinghe.seckill.entity.SuccessKilled;
+import com.xinghe.seckill.enums.SeckillStatEnum;
 
 /**
  * 封装秒杀执行后的结果
@@ -11,6 +12,19 @@ public class SeckillExecution {
     private int state;
     private String stateInfo;
     private SuccessKilled successKilled;
+
+    public SeckillExecution(long seckillId, SeckillStatEnum statEnum, SuccessKilled successKilled) {
+        this.seckillId = seckillId;
+        this.state = statEnum.getState();
+        this.stateInfo = statEnum.getStateInfo();
+        this.successKilled = successKilled;
+    }
+
+    public SeckillExecution(long seckillId, SeckillStatEnum statEnum) {
+        this.seckillId = seckillId;
+        this.state = statEnum.getState();
+        this.stateInfo = statEnum.getStateInfo();
+    }
 
     public long getSeckillId() {
         return seckillId;
