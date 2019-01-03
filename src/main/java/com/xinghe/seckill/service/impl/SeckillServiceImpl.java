@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 
@@ -50,9 +51,10 @@ public class SeckillServiceImpl implements SeckillService {
             return new Exposer(false, seckillId);
         }
         Date startTime = seckill.getStartTime();
+        logger.info("startTime={}",startTime.toString() );
         Date endTime = seckill.getEndTime();
         Date nowTime = new Date();
-        if (nowTime.after(endTime) || nowTime.before(startTime)) {
+        if (nowTime.getTime() < startTime.getTime() || nowTime.getTime() > endTime.getTime()) {
             return new Exposer(false, seckillId, nowTime.getTime(), startTime.getTime(), endTime.getTime());
         }
         String md5 = getMD5(seckillId);
@@ -60,12 +62,12 @@ public class SeckillServiceImpl implements SeckillService {
     }
 
     @Override
+    @Transactional
     public SeckillExecution executeSeckill(long seckillId, long userPhone, String md5) throws RepeatKillException, SeckillCloseException, SeckillException {
         if (StringUtils.isEmpty(md5) || !md5.equals(getMD5(seckillId))) {
             throw new SeckillException("seckill data rewrite");
         }
         Date nowTime = new Date();
-
         try {
             int reduceNumber = seckillDao.reduceNumber(seckillId, nowTime);
             if (reduceNumber <= 0) {
@@ -86,7 +88,7 @@ public class SeckillServiceImpl implements SeckillService {
             e2.printStackTrace();
             throw e2;
         } catch (Exception e) {
-            logger.error(e.getMessage(),e);
+            logger.error(e.getMessage(), e);
             throw new SeckillException("seckill inner error:" + e.getMessage());
         }
     }
