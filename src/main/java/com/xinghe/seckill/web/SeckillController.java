@@ -1,5 +1,6 @@
 package com.xinghe.seckill.web;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.xinghe.seckill.dto.Exposer;
 import com.xinghe.seckill.dto.SeckillExecution;
 import com.xinghe.seckill.dto.SeckillResult;
@@ -22,6 +23,7 @@ import java.util.List;
 @Controller
 @RequestMapping("/seckill")
 public class SeckillController {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
@@ -63,6 +65,7 @@ public class SeckillController {
 
     @RequestMapping(value = "/{seckillId}/{md5}/execution", method = RequestMethod.POST, produces = {"application/json;charset=UTF-8"})
     @ResponseBody
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public SeckillResult<SeckillExecution> execute(@PathVariable("seckillId") Long seckillId,
                                                    @PathVariable("md5") String md5,
                                                    @CookieValue(value = "killPhone", required = false) Long phone) {
@@ -85,9 +88,14 @@ public class SeckillController {
         }
     }
 
+//    @RequestMapping(value = "/time/now", method = RequestMethod.GET, produces = "application/json;charset=utf-8")
     @RequestMapping(value = "/time/now", method = RequestMethod.GET)
+    @ResponseBody
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public SeckillResult<Long> time() {
+//    public Date time() {
         Date now = new Date();
-        return new SeckillResult<Long>(true, now.getTime());
+        return new SeckillResult<>(true, now.getTime());
+//        return now;
     }
 }
