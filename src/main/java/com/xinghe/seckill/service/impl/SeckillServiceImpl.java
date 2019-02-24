@@ -2,6 +2,7 @@ package com.xinghe.seckill.service.impl;
 
 import com.xinghe.seckill.dao.SeckillDao;
 import com.xinghe.seckill.dao.SuccessKilledDao;
+import com.xinghe.seckill.dao.cache.RedisDao;
 import com.xinghe.seckill.dto.Exposer;
 import com.xinghe.seckill.dto.SeckillExecution;
 import com.xinghe.seckill.entity.Seckill;
@@ -32,6 +33,9 @@ public class SeckillServiceImpl implements SeckillService {
     @Autowired
     private SuccessKilledDao successKilledDao;
 
+    @Autowired
+    private RedisDao redisDao;
+
     private String salt = "asrq2rqtgq4wt6q3a$#25rag";
 
     @Override
@@ -46,12 +50,18 @@ public class SeckillServiceImpl implements SeckillService {
 
     @Override
     public Exposer exportSeckillUrl(long seckillId) {
-        Seckill seckill = seckillDao.queryById(seckillId);
+        //优化点：缓存优化
+        Seckill seckill = redisDao.getSeckill(seckillId);
         if (seckill == null) {
-            return new Exposer(false, seckillId);
+            seckill = seckillDao.queryById(seckillId);
+            if (seckill == null) {
+                return new Exposer(false, seckillId);
+            } else {
+                String result = redisDao.putSeckill(seckill);
+            }
         }
         Date startTime = seckill.getStartTime();
-        logger.info("startTime={}",startTime.toString() );
+        logger.info("startTime={}", startTime.toString());
         Date endTime = seckill.getEndTime();
         Date nowTime = new Date();
         if (nowTime.getTime() < startTime.getTime() || nowTime.getTime() > endTime.getTime()) {
